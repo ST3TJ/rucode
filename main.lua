@@ -94,10 +94,15 @@ end
 -- Ищем переменные в коде
 local variables = {}
 
+-- TODO Хеш переменных для замены в ошибках
+local hash = {}
+
+-- Поиск паттерна
 for variable in result:gmatch('(%S+)%s*=%s*%d+') do
     table.insert(variables, variable)
 end
 
+-- Создание английского имени и его замена
 for i, variable in ipairs(variables) do
     local englishName = 'slot' .. i
     result = result:gsub(variable .. '%s*=', englishName .. ' =')

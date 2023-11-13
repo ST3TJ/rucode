@@ -1,5 +1,9 @@
+--#region: _G
 _DEBUG = true
-
+_OUTPUT = true
+_LOAD = false
+--#endregion
+--#region: Импорт
 ---Функция для импорта локальных библиотек
 ---@param name string
 ---@return any
@@ -23,7 +27,8 @@ end
 
 -- Импорт библиотек
 utils = import("utils.lua")
-
+--#endregion
+--#region: Чтение файла и синтаксис
 -- Открываем файл с кодом
 local main = io.open("main.rus", "r")
 assert(main, "error: 0x1")
@@ -74,7 +79,8 @@ local keywords = {
     ["округлить"] = "utils.ceil",
     ["квадрат"] = "math.sqr"
 }
-
+--#endregion
+--#region: Интерпретатор
 -- Разбиваем на отдельные слова чтобы после сверять с синтаксисом и делать замены
 local result = ""
 for word in code:gmatch("[^%s]+") do
@@ -86,10 +92,26 @@ for word in code:gmatch("[^%s]+") do
 end
 
 -- Ищем переменные в коде
-result = result:gsub("var%s+(%a+):?%s*(%S+)", "%1 = %2")
+local variables = {}
 
-print(result)
+for variable in result:gmatch('(%S+)%s*=%s*%d+') do
+    table.insert(variables, variable)
+end
+
+for i, variable in ipairs(variables) do
+    local englishName = 'slot' .. i
+    result = result:gsub(variable .. '%s*=', englishName .. ' =')
+end
+--#endregion
+--#region: Вывод и загрузка
+-- Вывод итогового кода
+if _OUTPUT then
+    print(result)
+end
 
 -- Создаем функцию с кодом и сразу вызываем ее
-load(result)()
+if _LOAD then
+    load(result)()
+end
 io.close(main)
+--#endregion

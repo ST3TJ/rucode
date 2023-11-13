@@ -85,7 +85,16 @@ for word in code:gmatch("[^%s]+") do
     end
 end
 
+-- Ищем переменные в коде
+local var_pattern = "var%s+(%a+):%s+(%S+)"
+result = result:gsub(var_pattern, "%1 = %2")
 
+--[[for name, value in code:gmatch(var_pattern) do
+    print("Variable name:", name)
+    print("Variable value:", value)
+end]]
+
+print(result)
 
 -- Создаем функцию с кодом и сразу вызываем ее
 load(result)()

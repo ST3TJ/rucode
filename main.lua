@@ -93,12 +93,16 @@ end
 
 -- Ищем переменные в коде
 local variables = {}
-
 -- TODO Хеш переменных для замены в ошибках
 local hash = {}
 
--- Поиск паттерна
+-- Поиск паттерна создания переменной
 for variable in result:gmatch('(%S+)%s*=%s*%d+') do
+    table.insert(variables, variable)
+end
+
+-- Поиск объявления аргументов
+for variable in result:gmatch("%((.-)%)") do
     table.insert(variables, variable)
 end
 

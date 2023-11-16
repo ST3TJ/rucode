@@ -1,10 +1,24 @@
---#region: _G
+--#region: _G and File
 _DEBUG = true
 _OUTPUT = false
 _LOAD = true
+_FILE_NAME = io.read()
+
+if _FILE_NAME == "" then
+    _FILE_NAME = "main.rus"
+end
+
+_FILE = io.open(_FILE_NAME, "r")
+if not _FILE then
+    print(("A file named \"%s\" was not found"):format(_FILE_NAME))
+    print("Exiting...")
+    return
+end
+
+local code = _FILE:read("a")
 --#endregion
---#region: Импорт
----Функция для импорта локальных библиотек
+--#region: Import
+---Function for local libraries import
 ---@param name string
 ---@return any
 local function import(name)
@@ -25,18 +39,9 @@ local function import(name)
     end
 end
 
--- Импорт библиотек
 utils = import("utils.lua")
 --#endregion
---#region: Чтение файла и синтаксис
--- Открываем файл с кодом
-local main = io.open("main.rus", "r")
-assert(main, "error: 0x1")
-
--- Читаем его
-local code = main:read("a")
-
--- Синтаксис языка
+--#region: Interpreter
 local keywords = {
     ["локально"] = "local",
     ["локальное"] = "local",
@@ -79,8 +84,7 @@ local keywords = {
     ["округлить"] = "utils.ceil",
     ["квадрат"] = "math.sqr"
 }
---#endregion
---#region: Интерпретатор
+
 local result = ""
 for word in code:gmatch("[^%s]+") do
     if keywords[word] then
@@ -90,7 +94,7 @@ for word in code:gmatch("[^%s]+") do
     end
 end
 
--- Ищем необработанные токены и заменяем их
+-- Finding rawTokens and replacing it
 local rawTokens = {}
 
 for token in result:gmatch("[А-Яа-яЁё]+") do
@@ -102,15 +106,12 @@ for i, token in ipairs(rawTokens) do
     result = result:gsub(token, englishName)
 end
 --#endregion
---#region: Вывод и загрузка
--- Вывод итогового кода
+--#region: Loading code
 if _OUTPUT then
     print(result)
 end
-
--- Создаем функцию с кодом и сразу вызываем ее
 if _LOAD then
     load(result)()
 end
-io.close(main)
+io.close(_FILE)
 --#endregion

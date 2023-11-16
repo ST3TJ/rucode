@@ -1,7 +1,7 @@
 --#region: _G
 _DEBUG = true
-_OUTPUT = true
-_LOAD = false
+_OUTPUT = false
+_LOAD = true
 --#endregion
 --#region: Импорт
 ---Функция для импорта локальных библиотек
@@ -81,7 +81,6 @@ local keywords = {
 }
 --#endregion
 --#region: Интерпретатор
--- Разбиваем на отдельные слова чтобы после сверять с синтаксисом и делать замены
 local result = ""
 for word in code:gmatch("[^%s]+") do
     if keywords[word] then
@@ -91,25 +90,16 @@ for word in code:gmatch("[^%s]+") do
     end
 end
 
--- Ищем переменные в коде
-local variables = {}
--- TODO Хеш переменных для замены в ошибках
-local hash = {}
+-- Ищем необработанные токены и заменяем их
+local rawTokens = {}
 
--- Поиск паттерна создания переменной
-for variable in result:gmatch('(%S+)%s*=%s*%d+') do
-    table.insert(variables, variable)
+for token in result:gmatch("[А-Яа-яЁё]+") do
+    table.insert(rawTokens, token)
 end
 
--- Поиск объявления аргументов
-for variable in result:gmatch("%((.-)%)") do
-    table.insert(variables, variable)
-end
-
--- Создание английского имени и его замена
-for i, variable in ipairs(variables) do
+for i, token in ipairs(rawTokens) do
     local englishName = 'slot' .. i
-    result = result:gsub(variable .. '%s*=', englishName .. ' =')
+    result = result:gsub(token, englishName)
 end
 --#endregion
 --#region: Вывод и загрузка

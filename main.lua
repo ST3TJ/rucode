@@ -1,23 +1,5 @@
---#region: _G and File
-_DEBUG = true
-_OUTPUT = false
-_LOAD = true
-_FILE_NAME = io.read()
-
-if _FILE_NAME == "" then
-    _FILE_NAME = "main.rus"
-end
-
-_FILE = io.open(_FILE_NAME, "r")
-if not _FILE then
-    print(("A file named \"%s\" was not found"):format(_FILE_NAME))
-    print("Exiting...")
-    return
-end
-
-local code = _FILE:read("a")
---#endregion
 --#region: Import
+
 ---Function for local libraries import
 ---@param name string
 ---@return any
@@ -40,78 +22,103 @@ local function import(name)
 end
 
 utils = import("utils.lua")
+init = import("init.lua")
 --#endregion
---#region: Interpreter
-local keywords = {
-    ["локально"] = "local",
-    ["локальное"] = "local",
-    ["локальная"] = "local",
-    ["локальный"] = "local",
-
-    ["вывести"] = "print",
-    ["вывод"] = "print",
-    ["ввести"] = "io.read",
-    ["ввод"] = "io.read",
-
-    ["функция"] = "function",
-    ["вернуть"] = "return",
-
-    ["если"] = "if",
-    ["и"] = "and",
-    ["или"] = "or",
-    ["тогда"] = "then",
-    ["конец"] = "end",
-    ["кц"] = "end",
-    ["не"] = "not",
-
-    ["правда"] = "true",
-    ["правдиво"] = "true",
-    ["правду"] = "true",
-    ["ложь"] = "false",
-    ["неправда"] = "false",
-    ["неверно"] = "false",
-    ["ничто"] = "nil",
-
-    ["иначе"] = "else",
-    ["иначесли"] = "elseif",
-    ["пока"] = "while",
-    ["для"] = "for",
-
-    ["импорт"] = "require",
-    ["импортировать"] = "require",
-
-    ["корень"] = "math.sqrt",
-    ["округлить"] = "utils.ceil",
-    ["квадрат"] = "math.sqr"
+--#region: Interpreter table
+local Interpreter = {
+    memory = {
+        vars = {},
+        consts = {}
+    },
+    rawTokens = {
+        list = {},
+    },
+    keywords = {
+        ["локально"] = "local",
+        ["локальное"] = "local",
+        ["локальная"] = "local",
+        ["локальный"] = "local",
+    
+        ["вывести"] = "print",
+        ["вывод"] = "print",
+        ["ввести"] = "io.read",
+        ["ввод"] = "io.read",
+    
+        ["функция"] = "function",
+        ["вернуть"] = "return",
+    
+        ["если"] = "if",
+        ["и"] = "and",
+        ["или"] = "or",
+        ["тогда"] = "then",
+        ["конец"] = "end",
+        ["кц"] = "end",
+        ["не"] = "not",
+    
+        ["правда"] = "true",
+        ["правдиво"] = "true",
+        ["правду"] = "true",
+        ["ложь"] = "false",
+        ["неправда"] = "false",
+        ["неверно"] = "false",
+        ["ничто"] = "nil",
+    
+        ["иначе"] = "else",
+        ["иначесли"] = "elseif",
+        ["пока"] = "while",
+        ["для"] = "for",
+    
+        ["импорт"] = "require",
+        ["импортировать"] = "require",
+    
+        ["корень"] = "math.sqrt",
+        ["округлить"] = "utils.ceil",
+        ["квадрат"] = "math.sqr"
+    },
+    patternList = {
+        equation = "%s*([%a_][%w_]*)%s*=%s*([^;]+)"
+    },
+    code = "",
 }
-
-local result = ""
-for word in code:gmatch("[^%s]+") do
-    if keywords[word] then
-        result = result .. keywords[word] .. " "
-    else
-        result = result .. word .. " "
+--#endregion
+--#region: Interpreter functions
+Interpreter.replacement = function()
+    for word in _CODE:gmatch("[^%s]+") do
+        if Interpreter.keywords[word] then
+            Interpreter.code = Interpreter.code .. Interpreter.keywords[word] .. " "
+        else
+            Interpreter.code = Interpreter.code .. word .. " "
+        end
     end
 end
 
--- Finding rawTokens and replacing it
-local rawTokens = {}
-
-for token in result:gmatch("[А-Яа-яЁё]+") do
-    table.insert(rawTokens, token)
+Interpreter.memory.handler = function()
+    for k, v in Interpreter.code:gmatch(Interpreter.patternList.equation) do
+        print(k .. " = " .. v)
+    end
 end
 
-for i, token in ipairs(rawTokens) do
-    local englishName = 'slot' .. i
-    result = result:gsub(token, englishName)
+Interpreter.rawTokens.handler = function()
+    for token in Interpreter.code:gmatch("[А-Яа-яЁё]+") do
+        table.insert(Interpreter.rawTokens.list, token)
+    end
+    
+    for i, token in ipairs(Interpreter.rawTokens.list) do
+        local englishName = 'slot' .. i
+        Interpreter.code = Interpreter.code:gsub(token, englishName)
+    end
 end
+
+Interpreter.replacement()
+Interpreter.memory.handler()
+Interpreter.rawTokens.handler()
 --#endregion
 --#region: Loading code
 if _OUTPUT then
-    print(result)
+    print(Interpreter.code)
 end
 if _LOAD then
-    load(result)()
+    load(Interpreter.code)()
 end
 io.close(_FILE)
 --#endregion

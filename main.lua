@@ -94,7 +94,7 @@ end
 
 Interpreter.memory.handler = function()
     for k, v in Interpreter.code:gmatch(Interpreter.patternList.equation) do
-        print(k .. " = " .. v)
+        print(k .. " = " .. v) -- TODO
     end
 end
 
